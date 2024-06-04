@@ -1,0 +1,28 @@
+{% extends "base.html" %} {% block head %}
+<script>
+    const downloadLink = document.getElementById("download-link");
+
+    downloadLink.addEventListener("click", async () => {
+        const href = await fetch("/download-link/uuid")
+            .then((res) => res.json())
+            .then((data) => data.href);
+        const filename = href.split("=")[1];
+        const file = await fetch(href);
+        const blob = await file.blob();
+        const url = URL.createObjectURL(blob);
+        downloadLink.href = url;
+        downloadLink.download = filename;
+        downloadLink.click();
+    });
+</script>
+{% endblock %} {% block content %}
+<div class="flex justify-center flex-col items-center">
+    <div class="flex my-3 gap-5">
+        <a href="#" id="download-link">
+            <button class="border-2 rounded-3xl bg-gray-300 p-3">
+                Скачать файл
+            </button>
+        </a>
+    </div>
+</div>
+{% endblock %}

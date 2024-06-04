@@ -1,0 +1,9 @@
+.env
+key.key
+migrations/
+.vscode/
+newtests.py
+vt_check_v3.py
+requirements.txt
+fortests.py
+.drawio

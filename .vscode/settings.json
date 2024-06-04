@@ -1,0 +1,7 @@
+{
+    "CodeGPT.apiKey": "Ollama",
+    "CodeGPT.query.language": "Russian",
+    "cSpell.words": ["fastapi", "pydantic"],
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "off"
+}
