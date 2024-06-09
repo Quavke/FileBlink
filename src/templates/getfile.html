@@ -1,28 +1,39 @@
-{% extends "base.html" %} {% block head %}
-<script>
-    const downloadLink = document.getElementById("download-link");
-
-    downloadLink.addEventListener("click", async () => {
-        const href = await fetch("/download-link/uuid")
-            .then((res) => res.json())
-            .then((data) => data.href);
-        const filename = href.split("=")[1];
-        const file = await fetch(href);
-        const blob = await file.blob();
-        const url = URL.createObjectURL(blob);
-        downloadLink.href = url;
-        downloadLink.download = filename;
-        downloadLink.click();
-    });
-</script>
-{% endblock %} {% block content %}
+{% extends "base.html" %} {% block head %} {% endblock %} {% block content %}
 <div class="flex justify-center flex-col items-center">
     <div class="flex my-3 gap-5">
-        <a href="#" id="download-link">
-            <button class="border-2 rounded-3xl bg-gray-300 p-3">
-                Скачать файл
-            </button>
-        </a>
+        <button class="border-2 rounded-3xl bg-gray-300 p-3" id="download-btn">
+            Скачать файл
+        </button>
     </div>
 </div>
+<script>
+    document
+        .getElementById("download-btn")
+        .addEventListener("click", async () => {
+            const response = await fetch("{{ get_file_url }}");
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.style.display = "none";
+                a.href = url;
+                const contentDisposition = response.headers.get(
+                    "Content-Disposition"
+                );
+                const fileNameMatch =
+                    contentDisposition &&
+                    contentDisposition.match(/filename="?(.+)"?/);
+                const fileName = fileNameMatch
+                    ? fileNameMatch[1]
+                    : "downloaded_file";
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            } else {
+                console.error("Failed to download file:", response.statusText);
+            }
+        });
+</script>
 {% endblock %}

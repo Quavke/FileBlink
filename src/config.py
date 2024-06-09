@@ -1,7 +1,6 @@
 
 import os
 from dotenv import load_dotenv
-from cryptography.fernet import Fernet
 load_dotenv()
 
 REDIS_HOST = os.environ.get('REDIS_HOST')

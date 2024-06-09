@@ -1,8 +1,8 @@
 import datetime
 from email.policy import default
 from pytz import timezone
-from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, MetaData, String, Table, LargeBinary
-import sqlalchemy.orm
+from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, MetaData, String, LargeBinary
+
 
 from sqlalchemy_file import FileField
 from src.auth.models import User
@@ -38,6 +38,9 @@ class File(Base):
         String, default="1abc", index=True, nullable=True)
     count: Mapped[int] = mapped_column(Integer, default=0)
     file_extension: Mapped[str] = mapped_column(String)
+    mime_type: Mapped[str] = mapped_column(String, nullable=True)
+    download_count_del: Mapped[int] = mapped_column(
+        Integer, default=None, nullable=True)
 
 
 class UserFiles(Base):

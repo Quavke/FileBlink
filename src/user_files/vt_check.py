@@ -117,6 +117,8 @@ import asyncio
 from fastapi import UploadFile
 from src.config import VT_API
 
+# TODO обработка файлов больше чем 32мб
+
 
 async def vt_check_func(file: UploadFile):
     url_scan = "https://www.virustotal.com/api/v3/files"

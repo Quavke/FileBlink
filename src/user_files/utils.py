@@ -1,8 +1,5 @@
 from sqlalchemy import select, update
-from src.database import get_async_session
 from src.user_files.models import File as File_U
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 def separate_file_name_and_extension(file_name):
@@ -15,7 +12,7 @@ def separate_file_name_and_extension(file_name):
             # print("s:", s, "\n")
             i = "." + i
             for k in extensions:
-                if i == k:
+                if i.lower() == k:
                     # print("i:", i, "\n", "k:", k)
                     extensions_list.append(i)
                     break
@@ -27,6 +24,9 @@ def separate_file_name_and_extension(file_name):
     if extensions_str == '':
         extensions_str = None
     return base_name, extensions_str
+
+
+a, b = separate_file_name_and_extension("Circle.PnG")
 
 
 async def name_checker(session, name, filename):
@@ -58,7 +58,7 @@ async def name_checker(session, name, filename):
         u_name = filename_db
     else:
         u_name = base_name
-    return u_name, extension
+    return u_name, extension.lower()
 
 
 # async def file_exists_checker(session, file):
