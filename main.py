@@ -1,11 +1,14 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+
 from starlette.responses import RedirectResponse
 
+from src.database import get_async_session
 from src.auth.base_config import auth_backend, fastapi_users
 from src.auth.schemas import UserCreate, UserRead
 from src.user_files.router import router as router_files
 # from src.config import REDIS_HOST, REDIS_PORT
+from src.tasks.tasks import delete_expired_files
 from src.pages.router import router as router_pages
 app = FastAPI(
     title="FileBlink",
@@ -34,3 +37,8 @@ app.include_router(router_pages, tags=["Pages"])
 @app.get("/")
 def redirect_to_docs():
     return RedirectResponse(url="/docs")
+
+
+# @app.on_event("startup")
+# async def startup_event():
+#     delete_expired_files.apply_async()

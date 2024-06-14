@@ -1,10 +1,10 @@
 from datetime import datetime
 
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable
-from sqlalchemy import (JSON, TIMESTAMP, Boolean, Column, ForeignKey, Integer, MetaData,
-                        String, Table)
+from sqlalchemy import (JSON, TIMESTAMP, Boolean, Integer, MetaData,
+                        String)
 
-from sqlalchemy.orm import Mapped, relationship, DeclarativeMeta, mapped_column, declarative_base
+from sqlalchemy.orm import Mapped, DeclarativeMeta, mapped_column, declarative_base
 
 
 # class Base(DeclarativeBase):

@@ -1,5 +1,4 @@
 import datetime
-from email.policy import default
 from pytz import timezone
 from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, MetaData, String, LargeBinary
 
@@ -10,9 +9,6 @@ from sqlalchemy.orm import Mapped, mapped_column, declarative_base, DeclarativeM
 
 
 utc = timezone('UTC')
-
-
-# FIXME исправить метадату для таблиц, отношения между ними, создание юзера БЕЗ ЕБАНЫХ БАГОВ
 
 
 my_metadata = MetaData()
@@ -32,8 +28,7 @@ class File(Base):
     will_del_at: Mapped[datetime.datetime] = mapped_column(TIMESTAMP, default=(
         datetime.datetime.now(utc) + datetime.timedelta(days=7)))
     file: Mapped[FileField] = mapped_column(LargeBinary)
-    # user = sqlalchemy.orm.relationship("UserFiles", back_populates='file',
-    #                                    primaryjoin='and_(File.owner_id == User.id)')
+
     uuid_: Mapped[str] = mapped_column(
         String, default="1abc", index=True, nullable=True)
     count: Mapped[int] = mapped_column(Integer, default=0)
@@ -46,16 +41,6 @@ class File(Base):
 class UserFiles(Base):
     __tablename__ = "userfiles"
 
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey(User.id))
-    file_id = Column(Integer, ForeignKey(File.id))
-    # user = sqlalchemy.orm.relationship('User', back_populates='files')
-    # file = sqlalchemy.orm.relationship('File', back_populates='users')
-
-# UserFiles = Table(
-#     "userfiles",
-#     Base.metadata,
-#     id = Column(Integer, primary_key=True),
-#     user_id = Column(Integer, ForeignKey(User.id), primary_key=True),
-#     file_id = Column(Integer, ForeignKey(File.id), ,
-# )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey(User.id))
+    file_id: Mapped[int] = mapped_column(Integer, ForeignKey(File.id))
