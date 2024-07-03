@@ -1,4 +1,4 @@
-
+# from cryptography.fernet import Fernet
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -17,5 +17,5 @@ VT_API = os.environ.get("VT_API")
 
 
 # key = Fernet.generate_key()
-# with open("key.key", "wb") as key_file:
+# with open("key_pass.key", "wb") as key_file:
 #     key_file.write(key)

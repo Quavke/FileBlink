@@ -1,14 +1,10 @@
-import datetime
-from pytz import timezone
-from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, MetaData, String, LargeBinary
+from datetime import datetime, timedelta
+import pytz
+from sqlalchemy import DateTime, Integer, MetaData, String, LargeBinary
 
 
 from sqlalchemy_file import FileField
-from src.auth.models import User
 from sqlalchemy.orm import Mapped, mapped_column, declarative_base, DeclarativeMeta
-
-
-utc = timezone('UTC')
 
 
 my_metadata = MetaData()
@@ -23,24 +19,18 @@ class File(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String, index=True)
     download_count: Mapped[int] = mapped_column(Integer, default=0)
-    created_at: Mapped[datetime.datetime] = mapped_column(
-        TIMESTAMP, default=datetime.datetime.now(utc))
-    will_del_at: Mapped[datetime.datetime] = mapped_column(TIMESTAMP, default=(
-        datetime.datetime.now(utc) + datetime.timedelta(days=7)))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(pytz.utc))
+    will_del_at: Mapped[datetime] = mapped_column(DateTime, default=(
+        datetime.now(pytz.utc) + timedelta(days=7)))
     file: Mapped[FileField] = mapped_column(LargeBinary)
 
     uuid_: Mapped[str] = mapped_column(
-        String, default="1abc", index=True, nullable=True)
+        String, default="1abc", index=True)
     count: Mapped[int] = mapped_column(Integer, default=0)
-    file_extension: Mapped[str] = mapped_column(String)
-    mime_type: Mapped[str] = mapped_column(String, nullable=True)
+    # file_extension: Mapped[str] = mapped_column(String)
+    mime_type: Mapped[str] = mapped_column(String)
     download_count_del: Mapped[int] = mapped_column(
         Integer, default=None, nullable=True)
-
-
-class UserFiles(Base):
-    __tablename__ = "userfiles"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey(User.id))
-    file_id: Mapped[int] = mapped_column(Integer, ForeignKey(File.id))
+    password_bytea: Mapped[LargeBinary] = mapped_column(
+        LargeBinary, nullable=True)

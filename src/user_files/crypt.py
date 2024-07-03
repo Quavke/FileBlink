@@ -1,9 +1,5 @@
 from cryptography.fernet import Fernet
-from fastapi import UploadFile, File
-from typing import Optional
 from tempfile import NamedTemporaryFile
-
-SECRET_PASS = b'some_secret_key_here'  # Замените на свой секретный ключ
 
 
 def encrypt_file(file_) -> bytes:
@@ -12,7 +8,6 @@ def encrypt_file(file_) -> bytes:
 
     Args:
         file_: Загружаемый файл (UploadFile).
-        secret_pass: Секретный ключ для шифрования (bytes).
 
     Returns:
         Зашифрованные данные файла (bytes).
@@ -34,8 +29,6 @@ def decrypt_file(encrypted_data: bytes) -> bytes:
 
     Args:
         encrypted_data: Зашифрованные данные файла (bytes).
-        secret_pass: Секретный ключ для дешифрования (bytes).
-        filename: Имя файла для сохранения дешифрованных данных.
 
     Returns:
         Дешифрованные данные файла (bytes).
@@ -46,4 +39,3 @@ def decrypt_file(encrypted_data: bytes) -> bytes:
     decrypted_data = cipher.decrypt(encrypted_data)
     # print(str(decrypted_data))
     return decrypted_data
-

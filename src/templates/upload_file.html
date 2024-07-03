@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block head %}
+<script>
+    function toggleRadioButtons() {
+        const freedaysInput = document.getElementById("freedays");
+        const radio7Days = document.getElementById("opt1");
+        const radio14Days = document.getElementById("opt2");
+
+        if (parseInt(freedaysInput.value) > 0) {
+            radio7Days.disabled = true;
+            radio14Days.disabled = true;
+        } else {
+            radio7Days.disabled = false;
+            radio14Days.disabled = false;
+        }
+    }
+
+    async function uploadfile() {
+        const freedays = document.getElementById("freedays").value || 0;
+        const downloadCount = document.getElementById("download-count").value || 0;
+        const dayWeek = document.getElementById("opt1").checked ? 'true' : 'false';
+        const day14 = document.getElementById("opt2").checked ? 'true' : 'false';
+        const fileInput = document.getElementById("u_file").files[0];
+        const statusMessage = document.getElementById("status-message");
+        const password = document.getElementById("password").checked ? 'true' : 'false';
+
+        const url = `/files/uploadfile/?day_week=${dayWeek}&day_14=${day14}&day_free=${freedays}&download_count_del=${downloadCount}&password_bool=${password}`;
+
+        const formData = new FormData();
+        formData.append("u_file", fileInput);
+
+        statusMessage.textContent = "Файл загружается...";
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const jsonResponse = await response.json();
+                statusMessage.textContent = `Файл загружен. Ваша ссылка: ${jsonResponse.url}`;
+                if (jsonResponse.password != null){
+                    statusMessage.textContent = `Файл загружен. Ваша ссылка: ${jsonResponse.url} Ваш пароль: ${jsonResponse.password}`;
+                }
+            } else{
+                const jsonResponse = await response.json();
+                if (jsonResponse.error === "Not latin characters") {
+                    statusMessage.textContent = "Название файла должно быть на английском";
+                } else {
+                    statusMessage.textContent = "Ошибка загрузки файла";
+                }
+                
+            }
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            statusMessage.textContent = "Ошибка загрузки файла";
+        }
+    }
+
+    function handleDrop(event) {
+        event.preventDefault();
+        const files = event.dataTransfer.files;
+        document.getElementById('u_file').files = files;
+        updateDropZoneText(files[0].name);
+    }
+
+    function handleDragOver(event) {
+        event.preventDefault();
+    }
+
+    function updateDropZoneText(fileName = null) {
+        const dropZone = document.getElementById('drop_zone');
+        if (fileName) {
+            dropZone.textContent = fileName;
+        } else {
+            const fileInput = document.getElementById('u_file');
+            if (fileInput.files.length > 0) {
+                dropZone.textContent = fileInput.files[0].name;
+            } else {
+                dropZone.textContent = "Перетащите файл сюда или нажмите, чтобы выбрать файл";
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('u_file').addEventListener('change', function() {
+            updateDropZoneText(this.files[0].name);
+        });
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="flex justify-center items-center h-screen">
+    <div class="border-2 border-gray-300 p-6 rounded-lg shadow-lg flex flex-col items-center space-y-4 w-96 md:w-2/3 lg:w-1/2 xl:w-1/3">
+        <div class="flex flex-col items-center space-y-2 w-full">
+            <div class="flex items-center space-x-2">
+                <input type="radio" name="days" id="opt1" class="" checked/>
+                <label for="opt1">7 дней</label>
+            </div>
+            <div class="flex items-center space-x-2">
+                <input type="radio" name="days" id="opt2" class="" />
+                <label for="opt2">14 дней</label>
+            </div>
+        </div>
+        <div class="flex flex-col items-center space-y-2 w-full">
+            <input
+                id="freedays"
+                type="number"
+                min="0"
+                class="w-full p-2 border border-gray-300 rounded"
+                oninput="this.value = Math.max(this.value, 0); toggleRadioButtons();"
+            />
+            <label for="freedays">Свой день</label>
+        </div>
+        <div class="flex flex-col items-center space-y-2 w-full">
+            <input
+                id="download-count"
+                type="number"
+                min="0"
+                class="w-full p-2 border border-gray-300 rounded"
+                oninput="this.value = Math.max(this.value, 0); toggleRadioButtons();"
+            />
+            <label for="download-count">Количество загрузок для удаления</label>
+        </div>
+        <div class="flex flex-col items-center space-y-2 w-full">
+            <input
+                id="password"
+                type="checkbox"
+                min="0"
+                class="w-full p-2 border border-gray-300 rounded"
+                oninput="this.value = Math.max(this.value, 0); toggleRadioButtons();"
+            /><label for="password" title="Поможет защитить ваш файл от третьих лиц">Пароль</label>
+        </div>
+        <div class="flex flex-col items-center space-y-2 w-full">
+            <div
+                id="drop_zone"
+                class="w-full p-6 border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer"
+                ondrop="handleDrop(event)"
+                ondragover="handleDragOver(event)"
+                onclick="document.getElementById('u_file').click()"
+            >
+                Перетащите файл сюда или нажмите, чтобы выбрать файл
+            </div>
+            <input type="file" id="u_file" name="u_file" class="hidden"/>
+        </div>
+        <div class="flex items-center w-full">
+            <button
+                onclick="uploadfile()"
+                class="border-2 rounded-3xl bg-gray-300 p-3"
+            >
+                Создать файл
+            </button>
+        </div>
+        <span id="status-message" class="mt-4 text-sm text-gray-500 flex justify-center items-center"></span>
+    </div>
+</div>
+{% endblock %}

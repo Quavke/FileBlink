@@ -1,0 +1,98 @@
+{% extends "base.html" %} {% block head %} {% endblock %} {% block content %}
+<br /><br />
+<div class="flex justify-center flex-col items-center">
+    <div class="flex my-3 gap-5">
+        <div
+            id="password-form"
+            class="flex flex-col items-center space-y-2 w-full"
+        >
+            <label for="password">Введите пароль</label>
+            <input
+                type="password"
+                id="password"
+                class="w-full p-2 border border-gray-300 rounded"
+            />
+            <button
+                class="border-2 rounded-3xl bg-gray-300 p-3"
+                id="verify-btn"
+            >
+                Подтвердить
+            </button>
+        </div>
+    </div>
+    <p id="error-message" class="text-red-500"></p>
+    <button
+        class="border-2 rounded-3xl bg-gray-300 p-3"
+        id="download-btn"
+        style="display: none"
+    >
+        Скачать файл
+    </button>
+</div>
+
+<script type="text/javascript">
+    document
+        .getElementById("verify-btn")
+        .addEventListener("click", async (event) => {
+            event.preventDefault();
+            const password = document.getElementById("password").value;
+            const url = "{{ api_url|safe }}" + password;
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            const result = await response.json();
+            if (result.status === 2) {
+                window.download_url = result.download_url;
+                document.getElementById("download-btn").style.display = "block";
+                document.getElementById("password-form").style.display = "none";
+                document.getElementById("error-message").innerText = "";
+            } else {
+                document.getElementById("error-message").innerText =
+                    "Пароль неверный";
+            }
+        });
+    document
+        .getElementById("download-btn")
+        .addEventListener("click", async () => {
+            try {
+                const response = await fetch(download_url);
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.style.display = "none";
+                    a.href = url;
+                    const contentDisposition = response.headers.get(
+                        "Content-Disposition"
+                    );
+                    const fileNameMatch =
+                        contentDisposition &&
+                        contentDisposition.match(/filename="?(.+)"?/);
+                    const fileName = fileNameMatch
+                        ? fileNameMatch[1]
+                        : "downloaded_file";
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    if (response.status === 404) {
+                        alert("файл не был найден");
+                    } else {
+                        console.error(
+                            "Failed to download file:",
+                            response.statusText
+                        );
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching file:", error);
+            }
+        });
+</script>
+{% endblock %}
