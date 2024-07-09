@@ -27,10 +27,12 @@ class File(Base):
 
     uuid_: Mapped[str] = mapped_column(
         String, default="1abc", index=True)
-    count: Mapped[int] = mapped_column(Integer, default=0)
+    # count: Mapped[int] = mapped_column(Integer, default=0)
     # file_extension: Mapped[str] = mapped_column(String)
     mime_type: Mapped[str] = mapped_column(String)
     download_count_del: Mapped[int] = mapped_column(
         Integer, default=None, nullable=True)
     password_bytea: Mapped[LargeBinary] = mapped_column(
         LargeBinary, nullable=True)
+    secret_uuid: Mapped[str] = mapped_column(
+        String, default="1abc1", index=True)

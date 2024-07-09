@@ -74,7 +74,7 @@
                         contentDisposition &&
                         contentDisposition.match(/filename="?(.+)"?/);
                     const fileName = fileNameMatch
-                        ? fileNameMatch[1]
+                        ? decodeURIComponent(fileNameMatch[1])
                         : "downloaded_file";
                     a.download = fileName;
                     document.body.appendChild(a);

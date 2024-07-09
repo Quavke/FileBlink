@@ -45,13 +45,8 @@
                     statusMessage.textContent = `Файл загружен. Ваша ссылка: ${jsonResponse.url} Ваш пароль: ${jsonResponse.password}`;
                 }
             } else{
-                const jsonResponse = await response.json();
-                if (jsonResponse.error === "Not latin characters") {
-                    statusMessage.textContent = "Название файла должно быть на английском";
-                } else {
-                    statusMessage.textContent = "Ошибка загрузки файла";
-                }
-                
+                    const jsonResponse = await response.json();
+                    statusMessage.textContent = `Ошибка загрузки файла. Ошибка ${jsonResponse.message}`;
             }
         } catch (error) {
             console.error('Error uploading file:', error);

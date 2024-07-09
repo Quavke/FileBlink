@@ -1,5 +1,6 @@
 .env
 key.key
+key_pass.key
 migrations/
 .vscode/
 newtests.py
