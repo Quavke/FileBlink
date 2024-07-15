@@ -2,12 +2,12 @@ import aiohttp
 import asyncio
 from fastapi import UploadFile
 from src.config import VT_API
+from icecream import ic
 
-# TODO обработка файлов больше чем 32мб
 
-
-async def vt_check_func(file: UploadFile):
+async def vt_check_func(file: UploadFile, file_size: int) -> int:
     url_scan = "https://www.virustotal.com/api/v3/files"
+    large_url_scan = "https://www.virustotal.com/api/v3/files/upload_url"
     headers = {
         "x-apikey": VT_API
     }
@@ -18,6 +18,14 @@ async def vt_check_func(file: UploadFile):
         file_content = await file.read()
         data.add_field('file', file_content, filename=file.filename,
                        content_type='application/octet-stream')
+        if file_size >= 32 * 1024 * 1024:
+            ic("Получение ссылки для проверки")
+            async with session.get(large_url_scan, headers=headers) as response:
+                if response.status != 200:
+                    response_text = await response.text()
+                    return {"error": f"Failed to scan file: {response.status}", "status": "error", "details": response_text}
+                scan_result = await response.json()
+                url_scan = scan_result['data']
 
         # Send file for scanning
         async with session.post(url_scan, headers=headers, data=data) as response:

@@ -36,3 +36,6 @@ class File(Base):
         LargeBinary, nullable=True)
     secret_uuid: Mapped[str] = mapped_column(
         String, default="1abc1", index=True)
+
+
+file_size: Mapped[int] = mapped_column(Integer, nullable=True)

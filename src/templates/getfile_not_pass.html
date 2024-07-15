@@ -2,17 +2,28 @@
 <br /><br />
 
 <div class="flex justify-center flex-col items-center">
-    <div class="flex my-3 gap-5">
-        <button class="border-2 rounded-3xl bg-gray-300 p-3" id="download-btn">
-            Скачать файл
-        </button>
-    </div>
+    <button class="border-2 rounded-3xl bg-gray-300 p-3" id="download-btn">
+        Скачать файл
+    </button>
+    <span id="status-message" class="mt-4 text-sm text-gray-500"></span>
 </div>
-
 <script type="text/javascript">
+    function wait(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
     document
         .getElementById("download-btn")
         .addEventListener("click", async () => {
+            document.getElementById("download-btn").disabled = true;
+            document
+                .getElementById("download-btn")
+                .classList.add(
+                    "bg-gray-500",
+                    "opacity-30",
+                    "cursor-not-allowed"
+                );
+            const statusMessage = document.getElementById("status-message");
+            statusMessage.textContent = "Запросили файл...";
             try {
                 event.preventDefault();
                 const url = "{{ api_url|safe }}";
@@ -27,6 +38,7 @@
                 if (result.status === 2) {
                     const response = await fetch(result.download_url);
                     if (response.ok) {
+                        statusMessage.textContent = "Получили файл. Отдаем...";
                         const blob = await response.blob();
                         const url = window.URL.createObjectURL(blob);
                         const a = document.createElement("a");
@@ -45,6 +57,24 @@
                         document.body.appendChild(a);
                         a.click();
                         window.URL.revokeObjectURL(url);
+                        statusMessage.textContent =
+                            "Готово. Подождите немного...";
+                        document.getElementById(
+                            "download-btn"
+                        ).disabled = false;
+                        const downloadBtn =
+                            document.getElementById("download-btn");
+                        if (downloadBtn) {
+                            downloadBtn.disabled = false;
+                            downloadBtn.classList.remove(
+                                "bg-gray-500",
+                                "opacity-30",
+                                "cursor-not-allowed"
+                            );
+                            downloadBtn.classList.add("cursor-pointer");
+                        }
+                        await wait(5000);
+                        statusMessage.textContent = "";
                     } else {
                         if (response.status === 404) {
                             alert("файл не был найден");

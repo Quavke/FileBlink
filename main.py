@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.responses import RedirectResponse
 
 from src.user_files.router import router as router_files
-# from src.config import REDIS_HOST, REDIS_PORT
+
 from src.pages.router import router as router_pages
 app = FastAPI(
     title="FileBlink",

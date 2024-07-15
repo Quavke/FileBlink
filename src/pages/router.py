@@ -21,4 +21,5 @@ async def get_file_page(request: Request, uuid_: str, session: AsyncSession = De
 
 @router.get("/upload_file/")
 async def create_file_page(request: Request):
-    return templates.TemplateResponse("upload_file.html", {"request": request})
+    file_check_url = "http://127.0.0.1:8000/files/file_check/"
+    return templates.TemplateResponse("upload_file.html", {"request": request, "file_check": file_check_url})

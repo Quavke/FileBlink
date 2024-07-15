@@ -23,31 +23,97 @@
         const day14 = document.getElementById("opt2").checked ? 'true' : 'false';
         const fileInput = document.getElementById("u_file").files[0];
         const statusMessage = document.getElementById("status-message");
+        const statusMessage2 = document.getElementById("status-message-2");
         const password = document.getElementById("password").checked ? 'true' : 'false';
 
         const url = `/files/uploadfile/?day_week=${dayWeek}&day_14=${day14}&day_free=${freedays}&download_count_del=${downloadCount}&password_bool=${password}`;
-
+        downloadCount.disabled = true
         const formData = new FormData();
         formData.append("u_file", fileInput);
-
-        statusMessage.textContent = "Файл загружается...";
+        const downloadBtn = document.getElementById("upload-btn")
+        document.getElementById("upload-btn").disabled = true;
+        document
+            .getElementById("upload-btn")
+            .classList.add(
+                "bg-gray-500",
+                "opacity-30",
+                "cursor-not-allowed"
+            );
 
         try {
-            const response = await fetch(url, {
+            statusMessage.textContent = "Проверка файла...";
+            const response = await fetch("{{file_check|safe}}", {
                 method: 'POST',
                 body: formData
             });
-
             if (response.ok) {
-                const jsonResponse = await response.json();
-                statusMessage.textContent = `Файл загружен. Ваша ссылка: ${jsonResponse.url}`;
-                if (jsonResponse.password != null){
-                    statusMessage.textContent = `Файл загружен. Ваша ссылка: ${jsonResponse.url} Ваш пароль: ${jsonResponse.password}`;
+                statusMessage.textContent = "Загрузка файла...";
+                const response1 = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (response1.ok) {
+                    const jsonResponse = await response1.json();
+                    if (jsonResponse.password != null){
+                        statusMessage.textContent = `Файл загружен. Ваша ссылка: ${jsonResponse.url}`;
+                        statusMessage2.textContent = `Ваш пароль: ${jsonResponse.password}`;
+                        document.getElementById("upload-btn").disabled = false;
+                        const uploadBtn = document.getElementById("upload-btn");
+                        if (uploadBtn) {
+                            uploadBtn.disabled = false;
+                            uploadBtn.classList.remove(
+                                "bg-gray-500",
+                                "opacity-30",
+                                "cursor-not-allowed"
+                            );
+                            uploadBtn.classList.add("cursor-pointer");
+                        }
+                    }
+                    statusMessage.textContent = `Файл загружен. Ваша ссылка: ${jsonResponse.url}`;
+                    document.getElementById("upload-btn").disabled = false;
+                    const uploadBtn = document.getElementById("upload-btn");
+                    if (uploadBtn) {
+                        uploadBtn.disabled = false;
+                        uploadBtn.classList.remove(
+                            "bg-gray-500",
+                            "opacity-30",
+                            "cursor-not-allowed"
+                        );
+                        uploadBtn.classList.add("cursor-pointer");
+                    }
+                } else{
+                        const jsonResponse = await response1.json();
+                        statusMessage.textContent = `Ошибка загрузки файла. Ошибка ${jsonResponse.message}`;
+                        document.getElementById("upload-btn").disabled = false;
+                        const uploadBtn = document.getElementById("upload-btn");
+                        if (uploadBtn) {
+                            uploadBtn.disabled = false;
+                            uploadBtn.classList.remove(
+                                "bg-gray-500",
+                                "opacity-30",
+                                "cursor-not-allowed"
+                            );
+                            uploadBtn.classList.add("cursor-pointer");
+                        }
+                
                 }
-            } else{
+                }
+            else{
                     const jsonResponse = await response.json();
-                    statusMessage.textContent = `Ошибка загрузки файла. Ошибка ${jsonResponse.message}`;
+                    statusMessage.textContent = `Ошибка проверки файла. Ошибка ${jsonResponse.message}`;
+                    document.getElementById("upload-btn").disabled = false;
+                    const uploadBtn = document.getElementById("upload-btn");
+                    if (uploadBtn) {
+                        uploadBtn.disabled = false;
+                        uploadBtn.classList.remove(
+                            "bg-gray-500",
+                            "opacity-30",
+                            "cursor-not-allowed"
+                        );
+                        uploadBtn.classList.add("cursor-pointer");
+                    }
             }
+        
         } catch (error) {
             console.error('Error uploading file:', error);
             statusMessage.textContent = "Ошибка загрузки файла";
@@ -100,25 +166,29 @@
                 <label for="opt2">14 дней</label>
             </div>
         </div>
-        <div class="flex flex-col items-center space-y-2 w-full">
-            <input
-                id="freedays"
-                type="number"
-                min="0"
-                class="w-full p-2 border border-gray-300 rounded"
-                oninput="this.value = Math.max(this.value, 0); toggleRadioButtons();"
-            />
-            <label for="freedays">Свой день</label>
-        </div>
-        <div class="flex flex-col items-center space-y-2 w-full">
-            <input
-                id="download-count"
-                type="number"
-                min="0"
-                class="w-full p-2 border border-gray-300 rounded"
-                oninput="this.value = Math.max(this.value, 0); toggleRadioButtons();"
-            />
-            <label for="download-count">Количество загрузок для удаления</label>
+        <div class="flex flex-row items-center space-x-2 w-full">
+            <div class="flex flex-col items-center space-y-2 w-1/2">
+                <input
+                    id="freedays"
+                    type="number"
+                    placeholder="0"
+                    min="0"
+                    class="w-full p-2 border border-gray-300 rounded text-center"
+                    oninput="this.value = Math.max(this.value, 0); toggleRadioButtons();"
+                />
+                <label for="freedays" class="text-center">Свой день</label>
+            </div>
+            <div class="flex flex-col items-center space-y-2 w-1/2">
+                <input
+                    id="download-count"
+                    type="number"
+                    placeholder="0"
+                    min="0"
+                    class="w-full p-2 border border-gray-300 rounded text-center"
+                    oninput="this.value = Math.max(this.value, 0); toggleRadioButtons();"
+                />
+                <label for="download-count" class="text-center">Количество загрузок для удаления</label>
+            </div>
         </div>
         <div class="flex flex-col items-center space-y-2 w-full">
             <input
@@ -144,12 +214,14 @@
         <div class="flex items-center w-full">
             <button
                 onclick="uploadfile()"
-                class="border-2 rounded-3xl bg-gray-300 p-3"
+                class="border-2 rounded-3xl bg-gray-300 p-3 w-full"
+                id="upload-btn"
             >
                 Создать файл
             </button>
         </div>
-        <span id="status-message" class="mt-4 text-sm text-gray-500 flex justify-center items-center"></span>
+        <span id="status-message" class="mt-4 text-sm text-gray-500 flex justify-center items-center">Файл должен быть не больше 650мб</span>
+        <span id="status-message-2" class="mt-4 text-sm text-gray-500 flex justify-center items-center"></span>
     </div>
 </div>
 {% endblock %}

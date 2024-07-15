@@ -21,16 +21,22 @@
         </div>
     </div>
     <p id="error-message" class="text-red-500"></p>
-    <button
-        class="border-2 rounded-3xl bg-gray-300 p-3"
-        id="download-btn"
-        style="display: none"
-    >
-        Скачать файл
-    </button>
+    <div class="flex justify-center flex-col items-center">
+        <button
+            class="border-2 rounded-3xl bg-gray-300 p-3"
+            id="download-btn"
+            style="display: none"
+        >
+            Скачать файл
+        </button>
+        <span id="status-message" class="mt-4 text-sm text-gray-500"></span>
+    </div>
 </div>
 
 <script type="text/javascript">
+    function wait(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
     document
         .getElementById("verify-btn")
         .addEventListener("click", async (event) => {
@@ -59,9 +65,19 @@
         .getElementById("download-btn")
         .addEventListener("click", async () => {
             try {
+                document.getElementById("download-btn").disabled = true;
+                document
+                    .getElementById("download-btn")
+                    .classList.add(
+                        "bg-gray-500",
+                        "opacity-30",
+                        "cursor-not-allowed"
+                    );
+                const statusMessage = document.getElementById("status-message");
+                statusMessage.textContent = "Запросили файл...";
                 const response = await fetch(download_url);
-
                 if (response.ok) {
+                    statusMessage.textContent = "Получили файл. Отдаем...";
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement("a");
@@ -80,6 +96,20 @@
                     document.body.appendChild(a);
                     a.click();
                     window.URL.revokeObjectURL(url);
+                    statusMessage.textContent = "Готово. Подождите немного...";
+                    document.getElementById("download-btn").disabled = false;
+                    const downloadBtn = document.getElementById("download-btn");
+                    if (downloadBtn) {
+                        downloadBtn.disabled = false;
+                        downloadBtn.classList.remove(
+                            "bg-gray-500",
+                            "opacity-30",
+                            "cursor-not-allowed"
+                        );
+                        downloadBtn.classList.add("cursor-pointer");
+                    }
+                    await wait(5000);
+                    statusMessage.textContent = "";
                 } else {
                     if (response.status === 404) {
                         alert("файл не был найден");
