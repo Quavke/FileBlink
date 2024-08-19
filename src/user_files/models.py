@@ -16,7 +16,6 @@ Base: DeclarativeMeta = declarative_base(metadata=my_metadata)
 class File(Base):
     __tablename__ = "file"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String, index=True)
     download_count: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(
@@ -26,7 +25,7 @@ class File(Base):
     file: Mapped[FileField] = mapped_column(LargeBinary)
 
     uuid_: Mapped[str] = mapped_column(
-        String, default="1abc", index=True)
+        String, default="1abc", index=True, primary_key=True)
     # count: Mapped[int] = mapped_column(Integer, default=0)
     # file_extension: Mapped[str] = mapped_column(String)
     mime_type: Mapped[str] = mapped_column(String)
