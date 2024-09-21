@@ -1,21 +1,41 @@
-version: "4.3"
+version: "3.9" # Версия Docker Compose
+
 services:
     db:
         image: postgres:15
         container_name: file_blink_db
-        command: -p 1221
+        environment:
+            POSTGRES_USER: username # Убедитесь, что эти переменные среды совпадают
+            POSTGRES_PASSWORD: password
+            POSTGRES_DB: your_database
+        ports:
+            - "1221:1221" # Проброс порта
         expose:
-            - 1221
-        env_file:
-            - .env-non-dev
+            - "1221"
+        volumes:
+            - db_data:/var/lib/postgresql/data
+        networks:
+            - app-network
+
     app:
         build:
             context: .
-        env_file:
-            - .env-non-dev
         container_name: file_blink
         command: ["/file_blink/Docker/app.sh"]
         ports:
-            - 9999:8000
+            - "9999:8000" # Проброс порта приложения
         depends_on:
-            - db
+            - db # Обеспечиваем зависимость от базы данных
+        environment:
+            - DATABASE_URL=postgresql://username:password@db:1221/your_database
+        volumes:
+            - .:/file_blink # Проброс локальной папки
+        networks:
+            - app-network
+
+networks:
+    app-network:
+        driver: bridge
+
+volumes:
+    db_data: # Для сохранения данных PostgreSQL
