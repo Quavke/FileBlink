@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from starlette.responses import RedirectResponse
-from a2wsgi import ASGIMiddleware
 from src.user_files.router import router as router_files
 from fastapi.middleware.cors import CORSMiddleware
 from src.pages.router import router as router_pages
@@ -11,8 +10,6 @@ app = FastAPI(
     docs_url=None,
     redoc_url=None
 )
-
-wsgi_app = ASGIMiddleware(app)
 
 origins = [
     "http://localhost:9999",
