@@ -22,6 +22,7 @@
                     "opacity-30",
                     "cursor-not-allowed"
                 );
+            console.log("{{ api_url|safe }}");
             const statusMessage = document.getElementById("status-message");
             statusMessage.textContent = "Запросили файл...";
             try {
@@ -90,6 +91,8 @@
                 }
             } catch (error) {
                 console.error("Error fetching file:", error);
+                statusMessage.textContent =
+                    "Ошибка. Попробуйте ещё раз или позже.";
             }
         });
 </script>

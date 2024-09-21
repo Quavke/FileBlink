@@ -5,6 +5,7 @@ from sqlalchemy import DateTime, Integer, MetaData, String, LargeBinary
 
 from sqlalchemy_file import FileField
 from sqlalchemy.orm import Mapped, mapped_column, declarative_base, DeclarativeMeta
+from sqlmodel import null
 
 
 my_metadata = MetaData()
@@ -16,7 +17,6 @@ Base: DeclarativeMeta = declarative_base(metadata=my_metadata)
 class File(Base):
     __tablename__ = "file"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String, index=True)
     download_count: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(
@@ -26,8 +26,8 @@ class File(Base):
     file: Mapped[FileField] = mapped_column(LargeBinary)
 
     uuid_: Mapped[str] = mapped_column(
-        String, default="1abc", index=True)
-    # count: Mapped[int] = mapped_column(Integer, default=0)
+        String, default="1abc", index=True,  primary_key=True)
+    # count: Mapped[int] = mapped_column(Integer, default=0) TODO вернуть каунт
     # file_extension: Mapped[str] = mapped_column(String)
     mime_type: Mapped[str] = mapped_column(String)
     download_count_del: Mapped[int] = mapped_column(
@@ -35,7 +35,6 @@ class File(Base):
     password_bytea: Mapped[LargeBinary] = mapped_column(
         LargeBinary, nullable=True)
     secret_uuid: Mapped[str] = mapped_column(
-        String, default="1abc1", index=True)
+        String, index=True, nullable=False)
 
-
-file_size: Mapped[int] = mapped_column(Integer, nullable=True)
+    file_size: Mapped[int] = mapped_column(Integer, nullable=True)

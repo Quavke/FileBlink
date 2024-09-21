@@ -1,8 +1,9 @@
+from re import T
 from cryptography.fernet import Fernet
 from tempfile import NamedTemporaryFile
 
 
-def encrypt_file(file_) -> bytes:
+def encrypt_file(bytes_obj: bytes) -> bytes:
     """
     Шифрует содержимое файла с использованием заданного секретного ключа.
 
@@ -12,11 +13,13 @@ def encrypt_file(file_) -> bytes:
     Returns:
         Зашифрованные данные файла (bytes).
     """
+
     with open("key.key", "rb") as key_file:
         key = key_file.read()
     cipher = Fernet(key)
+
     with NamedTemporaryFile(delete=False) as temp_file:
-        temp_file.write(file_.file.read())
+        temp_file.write(bytes_obj.file.read())
         temp_file_path = temp_file.name
     with open(temp_file_path, 'rb') as f:
         encrypted_data = cipher.encrypt(f.read())
@@ -33,9 +36,10 @@ def decrypt_file(encrypted_data: bytes) -> bytes:
     Returns:
         Дешифрованные данные файла (bytes).
     """
+
     with open("key.key", "rb") as key_file:
         key = key_file.read()
     cipher = Fernet(key)
     decrypted_data = cipher.decrypt(encrypted_data)
-    # print(str(decrypted_data))
+    # rint(str(decrypted_data))
     return decrypted_data

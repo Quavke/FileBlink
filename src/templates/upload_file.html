@@ -1,6 +1,47 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block head %}
+<style>
+    @layer base {
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    }
+    input[type="number"] {
+        width: fit-content;
+        max-width: 100px;
+    }
 
-{% block head %}
+    input[type="number"]:not(:focus):not(:hover) {
+        width: auto;
+    }
+    progress {
+        width: 100%;
+        height: 10px;
+        border: none;
+        border-radius: 10px;
+        background-color: #2e3440;
+        /*box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);*/
+    }
+
+    progress::-webkit-progress-bar {
+        background-color: #2e3440;
+        border-radius: 10px;
+    }
+
+    progress::-webkit-progress-value {
+        background-color: #81a1c1;
+        border-radius: 10px;
+    }
+
+    progress::-moz-progress-bar {
+        background-color: #81a1c1;
+        border-radius: 10px;
+    }
+</style>
 <script>
     function toggleRadioButtons() {
         const freedaysInput = document.getElementById("freedays");
@@ -18,112 +59,82 @@
 
     async function uploadfile() {
         const freedays = document.getElementById("freedays").value || 0;
-        const downloadCount = document.getElementById("download-count").value || 0;
-        const dayWeek = document.getElementById("opt1").checked ? 'true' : 'false';
-        const day14 = document.getElementById("opt2").checked ? 'true' : 'false';
+        const downloadCount =
+            document.getElementById("download-count").value || 0;
+        const dayWeek = document.getElementById("opt1").checked
+            ? "true"
+            : "false";
+        const day14 = document.getElementById("opt2").checked
+            ? "true"
+            : "false";
         const fileInput = document.getElementById("u_file").files[0];
         const statusMessage = document.getElementById("status-message");
         const statusMessage2 = document.getElementById("status-message-2");
-        const password = document.getElementById("password").checked ? 'true' : 'false';
+        const password = document.getElementById("password").checked
+            ? "true"
+            : "false";
+        const baseUrl = `${window.location.protocol}//${window.location.host}`;
+        const url = `${baseUrl}/uploadfile/?day_week=${dayWeek}&day_14=${day14}&day_free=${freedays}&download_count_del=${downloadCount}&password_bool=${password}`;
 
-        const url = `/files/uploadfile/?day_week=${dayWeek}&day_14=${day14}&day_free=${freedays}&download_count_del=${downloadCount}&password_bool=${password}`;
-        downloadCount.disabled = true
         const formData = new FormData();
         formData.append("u_file", fileInput);
-        const downloadBtn = document.getElementById("upload-btn")
-        document.getElementById("upload-btn").disabled = true;
-        document
-            .getElementById("upload-btn")
-            .classList.add(
-                "bg-gray-500",
-                "opacity-30",
-                "cursor-not-allowed"
-            );
+
+        const progressBar = document.getElementById("progressBar");
 
         try {
             statusMessage.textContent = "Проверка файла...";
             const response = await fetch("{{file_check|safe}}", {
-                method: 'POST',
-                body: formData
+                method: "POST",
+                body: formData,
             });
+
             if (response.ok) {
-                statusMessage.textContent = "Загрузка файла...";
-                const response1 = await fetch(url, {
-                    method: 'POST',
-                    body: formData
+                progressBar.classList.remove("hidden");
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", url, true);
+
+                xhr.upload.addEventListener("progress", (event) => {
+                    if (event.lengthComputable) {
+                        const percentComplete =
+                            (event.loaded / event.total) * 100;
+                        progressBar.value = percentComplete;
+                        statusMessage.textContent = `Загрузка файла: ${Math.round(
+                            percentComplete
+                        )}%`;
+                    }
                 });
-                if (response1.ok) {
-                    const jsonResponse = await response1.json();
-                    if (jsonResponse.password != null){
+
+                xhr.onload = () => {
+                    if (xhr.status === 200) {
+                        const jsonResponse = JSON.parse(xhr.responseText);
                         statusMessage.textContent = `Файл загружен. Ваша ссылка: ${jsonResponse.url}`;
-                        statusMessage2.textContent = `Ваш пароль: ${jsonResponse.password}`;
-                        document.getElementById("upload-btn").disabled = false;
-                        const uploadBtn = document.getElementById("upload-btn");
-                        if (uploadBtn) {
-                            uploadBtn.disabled = false;
-                            uploadBtn.classList.remove(
-                                "bg-gray-500",
-                                "opacity-30",
-                                "cursor-not-allowed"
-                            );
-                            uploadBtn.classList.add("cursor-pointer");
+                        if (jsonResponse.password != null) {
+                            statusMessage2.textContent = `Ваш пароль: ${jsonResponse.password}`;
                         }
-                    }
-                    statusMessage.textContent = `Файл загружен. Ваша ссылка: ${jsonResponse.url}`;
-                    document.getElementById("upload-btn").disabled = false;
-                    const uploadBtn = document.getElementById("upload-btn");
-                    if (uploadBtn) {
-                        uploadBtn.disabled = false;
-                        uploadBtn.classList.remove(
-                            "bg-gray-500",
-                            "opacity-30",
-                            "cursor-not-allowed"
-                        );
-                        uploadBtn.classList.add("cursor-pointer");
-                    }
-                } else{
-                        const jsonResponse = await response1.json();
+                    } else {
+                        const jsonResponse = JSON.parse(xhr.responseText);
                         statusMessage.textContent = `Ошибка загрузки файла. Ошибка ${jsonResponse.message}`;
-                        document.getElementById("upload-btn").disabled = false;
-                        const uploadBtn = document.getElementById("upload-btn");
-                        if (uploadBtn) {
-                            uploadBtn.disabled = false;
-                            uploadBtn.classList.remove(
-                                "bg-gray-500",
-                                "opacity-30",
-                                "cursor-not-allowed"
-                            );
-                            uploadBtn.classList.add("cursor-pointer");
-                        }
-                
-                }
-                }
-            else{
-                    const jsonResponse = await response.json();
-                    statusMessage.textContent = `Ошибка проверки файла. Ошибка ${jsonResponse.message}`;
-                    document.getElementById("upload-btn").disabled = false;
-                    const uploadBtn = document.getElementById("upload-btn");
-                    if (uploadBtn) {
-                        uploadBtn.disabled = false;
-                        uploadBtn.classList.remove(
-                            "bg-gray-500",
-                            "opacity-30",
-                            "cursor-not-allowed"
-                        );
-                        uploadBtn.classList.add("cursor-pointer");
                     }
+                    progressBar.classList.add("hidden");
+                };
+
+                xhr.send(formData);
+            } else {
+                const jsonResponse = await response.json();
+                statusMessage.textContent = `Ошибка проверки файла. Ошибка: ${jsonResponse.message}`;
+                progressBar.classList.add("hidden");
             }
-        
         } catch (error) {
-            console.error('Error uploading file:', error);
+            console.error("Error uploading file:", error);
             statusMessage.textContent = "Ошибка загрузки файла";
+            progressBar.classList.add("hidden");
         }
     }
 
     function handleDrop(event) {
         event.preventDefault();
         const files = event.dataTransfer.files;
-        document.getElementById('u_file').files = files;
+        document.getElementById("u_file").files = files;
         updateDropZoneText(files[0].name);
     }
 
@@ -132,33 +143,36 @@
     }
 
     function updateDropZoneText(fileName = null) {
-        const dropZone = document.getElementById('drop_zone');
+        const dropZone = document.getElementById("drop_zone");
         if (fileName) {
             dropZone.textContent = fileName;
         } else {
-            const fileInput = document.getElementById('u_file');
+            const fileInput = document.getElementById("u_file");
             if (fileInput.files.length > 0) {
                 dropZone.textContent = fileInput.files[0].name;
             } else {
-                dropZone.textContent = "Перетащите файл сюда или нажмите, чтобы выбрать файл";
+                dropZone.textContent =
+                    "Перетащите файл сюда или нажмите, чтобы выбрать файл";
             }
         }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('u_file').addEventListener('change', function() {
-            updateDropZoneText(this.files[0].name);
-        });
+    document.addEventListener("DOMContentLoaded", function () {
+        document
+            .getElementById("u_file")
+            .addEventListener("change", function () {
+                updateDropZoneText(this.files[0].name);
+            });
     });
 </script>
-{% endblock %}
-
-{% block content %}
+{% endblock %} {% block content %}
 <div class="flex justify-center items-center h-screen">
-    <div class="border-2 border-gray-300 p-6 rounded-lg shadow-lg flex flex-col items-center space-y-4 w-96 md:w-2/3 lg:w-1/2 xl:w-1/3">
+    <div
+        class="border-2 border-gray-300 p-6 rounded-lg shadow-lg flex flex-col items-center space-y-4 w-96 md:w-2/3 lg:w-1/2 xl:w-1/3"
+    >
         <div class="flex flex-col items-center space-y-2 w-full">
             <div class="flex items-center space-x-2">
-                <input type="radio" name="days" id="opt1" class="" checked/>
+                <input type="radio" name="days" id="opt1" class="" checked />
                 <label for="opt1">7 дней</label>
             </div>
             <div class="flex items-center space-x-2">
@@ -166,39 +180,49 @@
                 <label for="opt2">14 дней</label>
             </div>
         </div>
-        <div class="flex flex-row items-center space-x-2 w-full">
-            <div class="flex flex-col items-center space-y-2 w-1/2">
-                <input
-                    id="freedays"
-                    type="number"
-                    placeholder="0"
-                    min="0"
-                    class="w-full p-2 border border-gray-300 rounded text-center"
-                    oninput="this.value = Math.max(this.value, 0); toggleRadioButtons();"
-                />
-                <label for="freedays" class="text-center">Свой день</label>
+
+        <div class="flex flex-row items-end space-x-2 w-full">
+            <div class="flex flex-col w-1/2 items-center">
+                <label for="freedays" class="mb-2 text-center">Свой день</label>
+                <div class="flex justify-center">
+                    <input
+                        id="freedays"
+                        type="number"
+                        placeholder="0"
+                        min="0"
+                        class="w-3ch p-2 border border-gray-300 rounded text-center"
+                        oninput="this.value = Math.max(this.value, 0); toggleRadioButtons();"
+                    />
+                </div>
             </div>
-            <div class="flex flex-col items-center space-y-2 w-1/2">
-                <input
-                    id="download-count"
-                    type="number"
-                    placeholder="0"
-                    min="0"
-                    class="w-full p-2 border border-gray-300 rounded text-center"
-                    oninput="this.value = Math.max(this.value, 0); toggleRadioButtons();"
-                />
-                <label for="download-count" class="text-center">Количество загрузок для удаления</label>
+
+            <div class="flex flex-col w-1/2 items-center">
+                <label for="download-count" class="mb-2 text-center"
+                    >Количество загрузок для удаления</label
+                >
+                <div class="flex justify-center">
+                    <input
+                        id="download-count"
+                        type="number"
+                        placeholder="0"
+                        min="0"
+                        class="w-3ch p-2 border border-gray-300 rounded text-center"
+                        oninput="this.value = Math.max(this.value, 0);"
+                    />
+                </div>
             </div>
         </div>
-        <div class="flex flex-col items-center space-y-2 w-full">
-            <input
-                id="password"
-                type="checkbox"
-                min="0"
-                class="w-full p-2 border border-gray-300 rounded"
-                oninput="this.value = Math.max(this.value, 0); toggleRadioButtons();"
-            /><label for="password" title="Поможет защитить ваш файл от третьих лиц">Пароль</label>
+
+        <div class="checkbox-wrapper-9">
+            <input class="tgl tgl-flat" id="password" type="checkbox" />
+            <label
+                class="tgl-btn"
+                for="password"
+                title="Поможет защитить ваш файл от третьих лиц"
+                >Пароль</label
+            >
         </div>
+
         <div class="flex flex-col items-center space-y-2 w-full">
             <div
                 id="drop_zone"
@@ -209,19 +233,34 @@
             >
                 Перетащите файл сюда или нажмите, чтобы выбрать файл
             </div>
-            <input type="file" id="u_file" name="u_file" class="hidden"/>
+            <input type="file" id="u_file" name="u_file" class="hidden" />
         </div>
-        <div class="flex items-center w-full">
-            <button
-                onclick="uploadfile()"
-                class="border-2 rounded-3xl bg-gray-300 p-3 w-full"
-                id="upload-btn"
+        <div class="flex flex-col items-center space-y-2 w-full">
+            <progress
+                id="progressBar"
+                value="0"
+                max="100"
+                class="w-full h-3 hidden"
+            ></progress>
+            <div class="flex items-center w-full">
+                <button
+                    onclick="uploadfile()"
+                    class="border-2 rounded-3xl bg-gray-300 p-3 w-full"
+                    id="upload-btn"
+                >
+                    Создать файл
+                </button>
+            </div>
+            <span
+                id="status-message"
+                class="mt-4 text-center text-sm text-gray-500 flex justify-center items-center"
+                >Файл должен быть не больше 650мб</span
             >
-                Создать файл
-            </button>
+            <span
+                id="status-message-2"
+                class="mt-4 text-center text-sm text-gray-500 flex justify-center items-center"
+            ></span>
         </div>
-        <span id="status-message" class="mt-4 text-sm text-gray-500 flex justify-center items-center">Файл должен быть не больше 650мб</span>
-        <span id="status-message-2" class="mt-4 text-sm text-gray-500 flex justify-center items-center"></span>
     </div>
+    {% endblock %}
 </div>
-{% endblock %}

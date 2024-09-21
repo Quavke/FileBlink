@@ -8,9 +8,20 @@
         />
         <meta http-equiv="X-UA-Compatible" content="ie=edge" />
         <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+            rel="stylesheet"
+        />
         {% block head %}{% endblock %}
         <title>FileBlink</title>
     </head>
+    <style>
+        body {
+            font-family: "JetBrains Mono", monospace;
+        }
+    </style>
     <body>
         <nav class="flex justify-between text-3xl my-3">
             <ul class="flex ml-10">

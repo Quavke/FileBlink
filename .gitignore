@@ -1,4 +1,5 @@
 .env
+.venv/
 key.key
 key_pass.key
 migrations/
@@ -10,3 +11,6 @@ fortests.py
 test.py
 file_extensions_complete.txt
 .prettierignore
+.idea/
+.mypy_cache/
+__pycache__/

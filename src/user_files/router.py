@@ -5,13 +5,13 @@ from urllib.parse import quote
 from sqlalchemy import update
 import os
 
-import re
+from sqlmodel import false
 from starlette.background import BackgroundTask
 from fastapi.responses import FileResponse
 
 import uuid
 from typing import Optional
-from fastapi import Depends, APIRouter, File, Response, UploadFile
+from fastapi import Depends, APIRouter, File, Request, Response, UploadFile
 from src.database import get_async_session
 
 from src.user_files.crypt import encrypt_file, decrypt_file
@@ -19,10 +19,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.user_files.models import File as File_U
 from src.user_files.utils import get_delta, get_by_value_from_db_scalar, delete_expired_files, password_create, password_decrypt
 from src.user_files.vt_check import vt_check_func
-from src.user_files.schemas import UploadParams
 from icecream import ic
 
-router = APIRouter(prefix="/files", tags=['Files'])
+router = APIRouter(tags=['Files'])
 
 response_200 = Response.status_code = 200
 
@@ -36,6 +35,7 @@ async def file_check(u_file: UploadFile = File(...), response: Response = respon
         return {"error": "File too large", "status": "error", "message": "File larger than 32 MB", "url": "file too large"}
     # Отправляем файл на сканирование в VirusTotal
     m_count = await vt_check_func(u_file, file_size)
+    print(m_count)
     await u_file.seek(0)
     # Считаем предупреждения
     # m_count = 1
@@ -53,7 +53,8 @@ async def file_check(u_file: UploadFile = File(...), response: Response = respon
 
 
 @router.post("/uploadfile/")
-async def create_upload_file(u_file: UploadFile = File(...),
+async def create_upload_file(request: Request,
+                             u_file: UploadFile = File(...),
                              day_week: bool = True,
                              day_14: bool = False,
                              day_free: int = 0,
@@ -72,25 +73,29 @@ async def create_upload_file(u_file: UploadFile = File(...),
         delta = get_delta(day_week,
                           day_14, day_free)
         id = uuid.uuid4()
-        UUID_ = id.hex
+        UUID = id.hex
+        slice = round(len(UUID)/2)
+        UUID = UUID[:slice]
         id_ = uuid.uuid4()
         SECRET_UUID = id_.hex
+        print(1, str(type(u_file)))
         en_file = encrypt_file(u_file)
+        print(2)
         password_en, password = password_create(password_bool)
         new_file = File_U(name=u_file.filename, created_at=datetime.datetime.utcnow(),
                           will_del_at=datetime.datetime.utcnow() + datetime.timedelta(days=delta),
-                          file=en_file, uuid_=UUID_, mime_type=u_file.content_type,
-                          download_count_del=download_count_del, password_bytea=password_en, secret_uuid=SECRET_UUID, file_size=len(await u_file.read())
-                          )
+                          file=en_file, uuid_=UUID, mime_type=u_file.content_type,
+                          download_count_del=download_count_del, password_bytea=password_en, secret_uuid=SECRET_UUID, file_size=len(await u_file.read()))  # , file_size=len(await u_file.read()
         session.add(new_file)
         await session.commit()
         return {"error": None,
                 "status": "ok",
                 "message": "file was uploaded successfully",
-                "url": f"http://127.0.0.1:8000/get_file/{UUID_}",
+                "url": f"{request.url.scheme}://{request.url.netloc}/get_file/{UUID}",
                 "password": password}
     except Exception as e:
         ic(e)
+        ic("/uploadfile/")
         response.status_code = 404
         return {"error": "Server error",
                 "status": "error",
@@ -112,17 +117,20 @@ async def get_password(uuid_: str, session):
 
 
 @router.post("/password_check/")
-async def password_check(uuid_: str, password: Optional[str], session: AsyncSession = Depends(get_async_session)):
+async def password_check(uuid_: str, request: Request, password: Optional[str], session: AsyncSession = Depends(get_async_session)):
     try:
+        base_url = f"{request.url.scheme}://{request.url.netloc}/"
         if password:
             password_en = await get_by_value_from_db_scalar(File_U.password_bytea, File_U.uuid_, uuid_, session)
             password_de = password_decrypt(password_en)
             if password == password_de:
                 secret_uuid = await get_by_value_from_db_scalar(File_U.secret_uuid, File_U.uuid_, uuid_, session)
-                file_size = await get_by_value_from_db_scalar(File_U.file_size, File_U.uuid_, uuid_, session)
+                # file_size = await get_by_value_from_db_scalar(File_U.file_size, File_U.uuid_, uuid_, session)
+                # return {"status": 2,
+                #         "download_url": f"http://127.0.0.1:8000/files/{secret_uuid}",
+                #         "file_size": file_size}
                 return {"status": 2,
-                        "download_url": f"http://127.0.0.1:8000/files/{secret_uuid}",
-                        "file_size": file_size}
+                        "download_url": f"{base_url}{secret_uuid}"}
             else:
                 return {"status": 1}
         else:
@@ -131,7 +139,7 @@ async def password_check(uuid_: str, password: Optional[str], session: AsyncSess
                 return {"status": 0}
             secret_uuid = await get_by_value_from_db_scalar(File_U.secret_uuid, File_U.uuid_, uuid_, session)
             return {"status": 2,
-                    "download_url": f"http://127.0.0.1:8000/files/{secret_uuid}"}
+                    "download_url": f"{base_url}{secret_uuid}"}
     except Exception as e:
         ic(e)
         return {"status": 0}
@@ -197,4 +205,4 @@ async def get_file_download_link(secret_uuid: str, session: AsyncSession = Depen
         response.status_code = 404
         return {"error": "unknown",
                 "status": "error",
-                "message": "file-doesn't exists"}
+                "message": "file doesn't exists"}

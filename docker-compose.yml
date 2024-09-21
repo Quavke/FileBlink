@@ -1,0 +1,21 @@
+version: "4.3"
+services:
+    db:
+        image: postgres:15
+        container_name: file_blink_db
+        command: -p 1221
+        expose:
+            - 1221
+        env_file:
+            - .env-non-dev
+    app:
+        build:
+            context: .
+        env_file:
+            - .env-non-dev
+        container_name: file_blink
+        command: ["/file_blink/Docker/app.sh"]
+        ports:
+            - 9999:8000
+        depends_on:
+            - db

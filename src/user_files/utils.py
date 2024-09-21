@@ -6,6 +6,7 @@ from sqlalchemy import and_, or_, select
 from src.user_files.models import File as File_U
 from cryptography.fernet import Fernet
 
+# выпиленные фичи закомментированы
 
 # def separate_file_name_and_extension(file_name):
 #     extensions_list = []
@@ -82,7 +83,7 @@ async def get_by_value_from_db_scalar(field, where, value, session):
 async def delete_expired_files(session):
     now = datetime.now(pytz.utc)
     naive_now = now.replace(tzinfo=None)
-    query = select(File_U.id).where(
+    query = select(File_U.uuid_).where(
         or_(
             and_(File_U.download_count_del != 0,
                  File_U.download_count >= File_U.download_count_del),
@@ -108,8 +109,9 @@ def password_create(password_bool: bool):
         with open("key_pass.key", "rb") as key_file:
             key = key_file.read()
         cipher = Fernet(key)
-        id = uuid.uuid1()
+        id = uuid.uuid4()
         password = id.bytes
+        password = password[:6]
         password_b64 = base64.b64encode(password)
         en_password = cipher.encrypt(password_b64)
         password_b64_decode = base64.b64encode(password).decode('utf-8')
@@ -130,3 +132,11 @@ def password_decrypt(en_password: str):
     password_str = de_pass.replace("+", "")
     password_str = password_str.replace("=", "")
     return password_str
+
+# генерация ключа для шифровки
+
+
+def key_cypher_gen(filename: str):
+    key = Fernet.generate_key()
+    with open(filename, "wb") as key_file:
+        key_file.write(key)

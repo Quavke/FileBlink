@@ -1,5 +1,5 @@
-# from cryptography.fernet import Fernet
 import os
+# from src.user_files.utils import key_cypher_gen
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -15,7 +15,4 @@ DB_PASS = os.environ.get("DB_PASS")
 SECRET_AUTH = os.environ.get("SECRET_AUTH")
 VT_API = os.environ.get("VT_API")
 
-
-# key = Fernet.generate_key()
-# with open("key_pass.key", "wb") as key_file:
-#     key_file.write(key)
+# key_cypher_gen("key_secret.key")
