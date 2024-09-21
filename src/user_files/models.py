@@ -26,13 +26,8 @@ class File(Base):
     file: Mapped[FileField] = mapped_column(LargeBinary)
 
     uuid_: Mapped[str] = mapped_column(
-<<<<<<< HEAD
         String, default="1abc", index=True,  primary_key=True)
     # count: Mapped[int] = mapped_column(Integer, default=0) TODO вернуть каунт
-=======
-        String, default="1abc", index=True, primary_key=True)
-    # count: Mapped[int] = mapped_column(Integer, default=0)
->>>>>>> cd838a31c7ad5cc0c114ed14ca194cb21d08e57f
     # file_extension: Mapped[str] = mapped_column(String)
     mime_type: Mapped[str] = mapped_column(String)
     download_count_del: Mapped[int] = mapped_column(
