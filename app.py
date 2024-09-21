@@ -27,7 +27,7 @@ app.add_middleware(
                    "Authorization"],
 )
 
-app.mount("/src/static/", StaticFiles(directory="src/static"), name="static")
+#app.mount("/src/static/", StaticFiles(directory="src/static"), name="static")
 
 
 app.include_router(router_files, tags=['Files'])
